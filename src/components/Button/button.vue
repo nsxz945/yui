@@ -156,7 +156,7 @@ button.yui-btn:active {
 
 /*button 水波纹点击效果*/
 
-.ripple:after {
+.ripple::after {
   content: "";
   display: block;
   position: absolute;
@@ -173,7 +173,7 @@ button.yui-btn:active {
   transition: transform .5s, opacity 1s
 }
 
-.ripple:active:after {
+.ripple:active::after {
   transform: scale(0, 0);
   opacity: .2;
   transition: 0s
