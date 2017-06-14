@@ -21,7 +21,7 @@
         <li>按钮</li>
       </ul>
     </nav>
-    <img src="./assets/logo.png">
+    <router-link to="/"><img src="./assets/logo.png"></router-link>
     <router-view></router-view>
   </div>
 </template>

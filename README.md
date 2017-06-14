@@ -1,4 +1,4 @@
-# mvue
+# yui for vue
 
 > A Vue.js project
 
