@@ -1,13 +1,18 @@
 <template>
   <div :class="wrapClasses">
-    <input ref="input" :type="type" :class="inputClasses" :placeholder="placeholder" :disabled="disabled" :maxlength="maxlength" :readonly="readonly" :name="name" :value="currentValue" :number="number" :autofocus="autofocus" @keyup.enter="handleEnter" @focus="handleFocus" @blur="handleBlur" @input="handleInput" @change="handleChange">
-    <transition name="fade">
-      <i ref="icon" aria-hidden="true" :class="icon" v-if="icon" @click="iconClick" v-show="hasInput"></i>
-    </transition>
+    <template v-if="type !== 'textarea'">
+      <input ref="input" :type="datatype" :class="inputClasses" :placeholder="placeholder" :disabled="disabled" :maxlength="maxlength" :readonly="readonly" :name="name" :value="currentValue" :number="number" :autofocus="autofocus" @keyup.enter="handleEnter" @focus="handleFocus" @blur="handleBlur" @input="handleInput" @change="handleChange">
+      <transition name="fade">
+        <i ref="icon" aria-hidden="true" :class="icon" @click="iconClick" v-show="hasInput && !readonly"></i>
+      </transition>
+    </template>
+    <textarea v-else ref="textarea" :class="textareaClasses" :style="textareaStyles" :placeholder="placeholder" :disabled="disabled" :rows="rows" :maxlength="maxlength" :readonly="readonly" :name="name" :value="value" :autofocus="autofocus" @keyup.enter="handleEnter" @focus="handleFocus" @blur="handleBlur" @input="handleInput">
+    </textarea>
   </div>
 </template>
 <script>
 import { oneOf } from '../../utils/utils.js'
+import calcTextareaHeight from '../../utils/calcTextareaHeight.js'
 const prefixCls = 'yui-input'
 
 export default {
@@ -33,7 +38,7 @@ export default {
       default: ''
     },
     maxlength: {
-      type: Number
+      type: [String, Number]
     },
     disabled: {
       type: Boolean,
@@ -44,7 +49,7 @@ export default {
       default: false
     },
     rows: {
-      type: Number,
+      type: [String, Number],
       default: 2
     },
     readonly: {
@@ -67,12 +72,20 @@ export default {
     return {
       currentValue: this.value,
       hasInput: false,
+      datatype: this.type,
+      isPassWord: '',
       prefixCls: prefixCls,
       prepend: true,
       append: true,
       slotReady: false,
       textareaStyles: {}
     }
+  },
+  created() {
+    this._init();
+  },
+  mounted() {
+    this.resizeTextarea();
   },
   computed: {
     wrapClasses() {
@@ -81,11 +94,6 @@ export default {
         {
           [`${prefixCls}-wrapper-${this.size}`]: !!this.size,
           [`${prefixCls}-type`]: this.type
-         // [`${prefixCls}-group`]: this.prepend || this.append,
-         // [`${prefixCls}-group-${this.size}`]: (this.prepend || this.append) && !!this.size,
-         // [`${prefixCls}-group-with-prepend`]: this.prepend,
-         // [`${prefixCls}-group-with-append`]: this.append,
-         // [`${prefixCls}-hide-icon`]: this.append  // #554
         }
       ];
     },
@@ -98,19 +106,33 @@ export default {
         }
       ];
     },
+    textareaClasses() {
+      return [
+        `${prefixCls}`,
+        {
+          [`${prefixCls}-disabled`]: this.disabled
+        }
+      ];
+    },
     icon() {
-      if (this.type === 'password') {
-        return 'fa fa-eye-slash'
-      } else {
-        return 'fa fa-times-circle'
-      }
+      if (this.isPassWord && this.datatype === 'password') return 'fa fa-eye';
+      if (this.isPassWord && this.datatype === 'text') return 'fa fa-eye-slash';
+      if (!this.isPassWord && this.datatype === 'text') return 'fa fa-times-circle';
     }
   },
   methods: {
+    _init() {
+      this.isPassWord = this.datatype === 'password' ? true : false;
+      if (this.value) this.hasInput = true;
+    },
     iconClick() {
-      if (this.icon === 'fa fa-eye-slash') {
-        this.type = 'text';
-      } else if (this.icon === 'fa fa-times-circle') {
+      if (this.isPassWord) {
+        if (this.datatype === 'password') {
+          this.datatype = 'text';
+        } else {
+          this.datatype = 'password';
+        }
+      } else {
         let value = ''
         this.$emit('input', value);
         this.setCurrentValue(value);
@@ -118,9 +140,6 @@ export default {
     },
     handleEnter(event) {
       this.$emit('on-enter', event);
-    },
-    handleIconClick(event) {
-      this.$emit('on-click', event);
     },
     handleFocus(event) {
       this.$emit('on-focus', event);
@@ -142,7 +161,19 @@ export default {
     setCurrentValue(value) {
       if (value === '') this.hasInput = false;
       if (value === this.currentValue) return;
+      this.$nextTick(() => {
+        this.resizeTextarea();
+      });
       this.currentValue = value;
+    },
+    resizeTextarea() {
+      const autosize = this.autosize;
+      if (!autosize || this.type !== 'textarea') {
+        return false;
+      }
+      const minRows = autosize.minRows;
+      const maxRows = autosize.maxRows;
+      this.textareaStyles = calcTextareaHeight(this.$refs.textarea, minRows, maxRows);
     }
   }
 }
@@ -154,7 +185,7 @@ export default {
   position: absolute;
   top: 50%;
   margin-top: -8px;
-  right: 10px;
+  right: 5px;
 }
 
 input {
@@ -184,16 +215,44 @@ input {
   }
 }
 
+textarea {
+  resize: none;
+  text-rendering: auto;
+  color: initial;
+  letter-spacing: normal;
+  word-spacing: normal;
+  text-transform: none;
+  text-indent: 0px;
+  text-shadow: none;
+  display: inline-block;
+  text-align: start;
+  margin: 0em 0em 0em 0em;
+  font: 13.3333px Arial;
+  &::-webkit-input-placeholder {
+    /* WebKit browsers */
+    color: #A9A9A9;
+  }
+  &::-moz-placeholder {
+    /* Mozilla Firefox 19+ */
+    color: #A9A9A9;
+    opacity: 1;
+  }
+  &::-ms-input-placeholder {
+    /* Internet Explorer 10+ */
+    color: #A9A9A9;
+  }
+}
+
 .yui-input-wrapper {
   position: relative;
   input[type="text"],
-  input[type="password"] {
+  input[type="password"],
+  textarea {
     box-sizing: border-box;
     display: inline-block;
     width: 100%;
-    height: 32px;
     line-height: 1.5;
-    padding: 4px 7px;
+    padding: 4px 25px 4px 7px;
     font-size: 12px;
     border: 1px solid #dddee1;
     border-radius: 4px;
@@ -202,7 +261,7 @@ input {
     background-image: none;
     position: relative;
     cursor: text;
-    transition: border .2s ease-in-out, background .2s ease-in-out, box-shadow .2s ease-in-out;
+    /*transition: all .2s ease-in-out;*/
     outline: 0;
 
     /* 鼠标覆盖样式 */
@@ -213,9 +272,9 @@ input {
     /* 选中样式 */
     &:focus {
       border: none;
-      padding: 5px 8px;
+      padding: 5px 25px 3px 8px;
       border-radius: 0;
-      border-bottom: 1px solid #85b7d9;
+      border-bottom: 2px solid #85b7d9;
       border-color: #85b7d9;
     }
   }
@@ -223,8 +282,9 @@ input {
     font-size: 14px;
     padding: 7px 7px;
     height: 36px;
+    font: 15px Arial;
     &:focus {
-      padding: 8px 8px;
+      padding: 8px 8px 6px;
     }
   }
 
@@ -232,8 +292,9 @@ input {
     padding: 1px 7px;
     height: 24px;
     border-radius: 3px;
+    font: 12px Arial;
     &:focus {
-      padding: 2px 8px;
+      padding: 2px 8px 0px;
     }
   }
 
