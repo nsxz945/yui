@@ -6,7 +6,7 @@
     </template>
     <textarea v-else ref="textarea" :class="textareaClasses" :style="textareaStyles" :placeholder="placeholder" :disabled="disabled" :rows="rows" :maxlength="maxlength" :readonly="readonly" :name="name" :value="value" :autofocus="autofocus" @keyup.enter="handleEnter" @focus="handleFocus" @blur="handleBlur" @input="handleInput">
     </textarea>
-    <label class="label" :class="{'active':isActive}" v-show="label">{{placeholder}}</label>
+    <label class="label" :class="{'active':isActive}" v-show="(label && !hasInput) || (label && isActive)">{{placeholder}}</label>
   </div>
 </template>
 <script>
@@ -314,6 +314,10 @@ textarea {
 
 .yui-input-label {
   padding-top: 15px;
+  .fa {
+    top: 65%;
+    right: 5px;
+  }
   input::-webkit-input-placeholder {
     /* WebKit browsers */
     color: #A9A9A9;
