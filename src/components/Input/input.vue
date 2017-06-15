@@ -2,12 +2,11 @@
   <div :class="wrapClasses">
     <template v-if="type !== 'textarea'">
       <input ref="input" :type="datatype" :class="inputClasses" :placeholder="placeholder" :disabled="disabled" :maxlength="maxlength" :readonly="readonly" :name="name" :value="currentValue" :number="number" :autofocus="autofocus" @keyup.enter="handleEnter" @focus="handleFocus" @blur="handleBlur" @input="handleInput" @change="handleChange">
-      <transition name="fade">
-        <i ref="icon" aria-hidden="true" :class="icon" @click="iconClick" v-show="hasInput && !readonly"></i>
-      </transition>
+      <i ref="icon" aria-hidden="true" :class="icon" @click="iconClick" v-show="hasInput && !readonly"></i>
     </template>
     <textarea v-else ref="textarea" :class="textareaClasses" :style="textareaStyles" :placeholder="placeholder" :disabled="disabled" :rows="rows" :maxlength="maxlength" :readonly="readonly" :name="name" :value="value" :autofocus="autofocus" @keyup.enter="handleEnter" @focus="handleFocus" @blur="handleBlur" @input="handleInput">
     </textarea>
+    <label class="label" :class="{'active':isActive}" v-show="label">{{placeholder}}</label>
   </div>
 </template>
 <script>
@@ -23,6 +22,9 @@ export default {
         return oneOf(value, ['text', 'textarea', 'password']);
       },
       default: 'text'
+    },
+    label: {
+      type: Boolean
     },
     value: {
       type: [String, Number],
@@ -72,6 +74,7 @@ export default {
     return {
       currentValue: this.value,
       hasInput: false,
+      isActive: false,
       datatype: this.type,
       isPassWord: '',
       prefixCls: prefixCls,
@@ -93,7 +96,8 @@ export default {
         `${prefixCls}-wrapper`,
         {
           [`${prefixCls}-wrapper-${this.size}`]: !!this.size,
-          [`${prefixCls}-type`]: this.type
+          [`${prefixCls}-type`]: this.type,
+          [`${prefixCls}-label`]: this.label
         }
       ];
     },
@@ -142,9 +146,11 @@ export default {
       this.$emit('on-enter', event);
     },
     handleFocus(event) {
+      this.isActive = true;
       this.$emit('on-focus', event);
     },
     handleBlur(event) {
+      this.isActive = false;
       this.$emit('on-blur', event);
     },
     handleChange(event) {
@@ -230,16 +236,16 @@ textarea {
   font: 13.3333px Arial;
   &::-webkit-input-placeholder {
     /* WebKit browsers */
-    color: #A9A9A9;
+    color: #ccc;
   }
   &::-moz-placeholder {
     /* Mozilla Firefox 19+ */
-    color: #A9A9A9;
+    color: #ccc;
     opacity: 1;
   }
   &::-ms-input-placeholder {
     /* Internet Explorer 10+ */
-    color: #A9A9A9;
+    color: #ccc;
   }
 }
 
@@ -303,6 +309,39 @@ textarea {
     opacity: 1;
     cursor: not-allowed;
     color: #ccc;
+  }
+}
+
+.yui-input-label {
+  padding-top: 15px;
+  input::-webkit-input-placeholder {
+    /* WebKit browsers */
+    color: #A9A9A9;
+    font-size: 0;
+  }
+  input::-moz-placeholder {
+    /* Mozilla Firefox 19+ */
+    color: #A9A9A9;
+    opacity: 1;
+    font-size: 0;
+  }
+  input::-ms-input-placeholder {
+    /* Internet Explorer 10+ */
+    color: #A9A9A9;
+    font-size: 0;
+  }
+  .label {
+    position: absolute;
+    top: 18px;
+    left: 8px;
+    color: #ccc;
+    transition: all .5s;
+  }
+  .label.active {
+    top: 0px;
+    left: 8px;
+    color: #85b7d9;
+    font-size: 5px;
   }
 }
 </style>

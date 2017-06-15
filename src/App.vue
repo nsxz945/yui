@@ -2,8 +2,12 @@
   <div id="app">
     <nav class="nav">
       <ul>
-        <li><router-link to="/button">按钮</router-link></li>
-        <li><router-link to="/input">输入框</router-link></li>
+        <li>
+          <router-link to="/button">按钮</router-link>
+        </li>
+        <li>
+          <router-link to="/input">输入框</router-link>
+        </li>
         <li>按钮</li>
         <li>按钮</li>
         <li>按钮</li>
@@ -21,7 +25,9 @@
         <li>按钮</li>
       </ul>
     </nav>
-    <router-link to="/"><img src="./assets/logo.png"></router-link>
+    <router-link to="/">
+      <img src="./assets/logo.png">
+    </router-link>
     <router-view></router-view>
   </div>
 </template>
@@ -33,6 +39,7 @@ export default {
 </script>
 
 <style>
+@import '../static/styles/github.css';
 #app {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
